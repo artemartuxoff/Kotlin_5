@@ -13,7 +13,8 @@ class WallServiceTest {
     @Test
     fun testAdd(){
 
-        val post = WallService.add(Post(0,0,0,0,0,"text", Comment(1), Like(1)))
+        //val post = WallService.add(Post(0,0,0,0,0,"text", Comment(1), Like(1)))
+        val post = WallService.add(Post(0,0,0,0,0,"text", null, null))
 
         assertEquals(1, post.id)
     }
