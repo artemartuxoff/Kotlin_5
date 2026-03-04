@@ -48,5 +48,26 @@ class WallServiceTest {
 
     }
 
+    @Test
+    fun addComment() {
 
+        //добавим записи
+        WallService.add(Post(0,0,0,0,0,"text1", Comment(1), Like(1)))
+
+        //добавим комментарий
+        val comment = Comment(1)
+        val result  = WallService.createComment(1, comment)
+
+        assertEquals(comment, result)
+    }
+
+    @Test(expected = PostNotFoundException::class)
+    fun shouldThrow() {
+        //добавим записи
+        WallService.add(Post(0,0,0,0,0,"text1", Comment(1), Like(1)))
+
+        //добавим комментарий
+        val comment = Comment(1)
+        WallService.createComment(0, comment)
+    }
 }

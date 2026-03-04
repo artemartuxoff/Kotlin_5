@@ -30,9 +30,12 @@ class Like(
     val canPublish: Boolean = true
 )
 
+class PostNotFoundException() : RuntimeException()
+
 object WallService {
 
     private var posts = emptyArray<Post>()
+    private var comments = emptyArray<Comment>()
     private var idPost: Int = 0
 
     fun add(post: Post): Post {
@@ -54,7 +57,19 @@ object WallService {
 
     fun clear() {
         posts = emptyArray()
+        comments = emptyArray()
         idPost = 0
+    }
+
+    fun createComment(postId: Int, comment: Comment): Comment {
+
+        for (post in posts) {
+            if (post.id == postId) {
+                comments += comment
+                return comment
+            }
+        }
+        throw PostNotFoundException()
     }
 }
 
