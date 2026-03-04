@@ -59,6 +59,7 @@ object WallService {
         posts = emptyArray()
         comments = emptyArray()
         idPost = 0
+
     }
 
     fun createComment(postId: Int, comment: Comment): Comment {
