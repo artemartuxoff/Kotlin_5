@@ -1,3 +1,6 @@
+import WallService.idPost
+import WallService.posts
+
 fun main() {
 
 
@@ -73,6 +76,140 @@ object WallService {
         throw PostNotFoundException()
     }
 }
+
+data class Note(
+    val id: Int,
+    var title: String,
+    var text: String
+)
+
+class NoteComment(
+    val id: Int,
+    val noteId: Int,
+    var message: String,
+    var marker: Boolean
+)
+
+class NoteNotFoundException() : RuntimeException()
+
+object NoteService {
+
+    private var notes = arrayListOf<Note>()
+    private var comments = arrayListOf<NoteComment>()
+
+    private var idNote: Int = 0
+    private var idNoteComment: Int = 0
+
+    fun clear() {
+        notes.clear()
+        comments.clear()
+        idNote = 0
+        idNoteComment = 0
+    }
+
+    fun add(title: String, text: String): Int {
+        notes.add(Note(++idNote, title, text))
+        return notes.last().id
+    }
+
+    fun delete(noteId: Int): Boolean {
+        for ((index, noteIndex) in notes.withIndex()) {
+            if (noteIndex.id == noteId) {
+                deleteCommentByNoteId(noteId)
+                notes.removeAt(index)
+                return true
+            }
+        }
+        return false
+    }
+
+    fun edit(noteId: Int, title: String, text: String): Boolean {
+        for ((index, noteIndex) in notes.withIndex()) {
+            if (noteIndex.id == noteId) {
+                val note = Note(noteId, title, text)
+                notes.set(index, note)
+                return true
+            }
+        }
+        return false
+    }
+
+    fun get(): ArrayList<Note> {
+        return notes
+    }
+
+    fun getById(noteId: Int): ArrayList<Note> {
+        var list = ArrayList<Note>()
+        for ((index, noteIndex) in notes.withIndex()) {
+            if (noteIndex.id == noteId) {
+                list.add(noteIndex)
+            }
+        }
+        return list
+    }
+
+    fun createComment(noteId: Int, message: String): Int {
+        for ((index, noteIndex) in notes.withIndex()) {
+            if (noteIndex.id == noteId) {
+                comments.add(NoteComment(++idNoteComment, noteId, message, false))
+                return comments.last().id
+            }
+        }
+        throw NoteNotFoundException()
+    }
+
+    fun deleteComment(commentId: Int): Boolean {
+        for ((index, commentIndex) in comments.withIndex()) {
+            if (commentIndex.id == commentId) {
+                commentIndex.marker = true
+                return true
+            }
+        }
+        return false
+    }
+
+    fun deleteCommentByNoteId(noteId: Int): Boolean {
+        for ((index, commentIndex) in comments.withIndex()) {
+            if (commentIndex.noteId == noteId) {
+                comments.remove(commentIndex)
+            }
+        }
+        return true
+    }
+
+    fun editComment(commentId: Int, message: String): Boolean {
+        for ((index, commentIndex) in comments.withIndex()) {
+            if (commentIndex.id == commentId) {
+                commentIndex.message = message
+                return true
+            }
+        }
+        return false
+    }
+
+    fun getComments(noteId: Int): Array<NoteComment> {
+        var list = emptyArray<NoteComment>()
+        for (comment in comments) {
+            if (comment.noteId == noteId) {
+                if (!comment.marker) {
+                    list += comment
+                }
+            }
+        }
+        return list
+    }
+
+    fun restoreComment(commentId: Int): Boolean {
+        for ((index, commentIndex) in comments.withIndex()) {
+            if (commentIndex.id == commentId) {
+                commentIndex.marker = false
+                return true
+            }
+        }
+        return false
+    }
+}
+
 
 interface Attachment {
     val type: String
