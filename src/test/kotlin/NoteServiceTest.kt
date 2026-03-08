@@ -30,6 +30,22 @@ class NoteServiceTest {
     }
 
     @Test
+    fun getById(){
+        val noteId = NoteService.add("title", "text")
+        val result = NoteService.getById(1)
+        assertEquals(noteId, result.id)
+
+    }
+
+    @Test(expected = NoteNotFoundException::class)
+    fun shouldgetByIdThrow() {
+
+        NoteService.add("title", "text")
+        NoteService.getById(100)
+
+    }
+
+    @Test
     fun createComment() {
 
         NoteService.add("title", "text")

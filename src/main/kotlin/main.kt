@@ -138,14 +138,14 @@ object NoteService {
         return notes
     }
 
-    fun getById(noteId: Int): ArrayList<Note> {
-        var list = ArrayList<Note>()
-        for ((index, noteIndex) in notes.withIndex()) {
+    fun getById(noteId: Int): Note {
+       for ((index, noteIndex) in notes.withIndex()) {
             if (noteIndex.id == noteId) {
-                list.add(noteIndex)
+                return noteIndex
             }
         }
-        return list
+
+        throw NoteNotFoundException()
     }
 
     fun createComment(noteId: Int, message: String): Int {
