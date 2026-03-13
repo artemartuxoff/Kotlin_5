@@ -1,5 +1,10 @@
+import NoteService.comments
+import NoteService.idNote
+import NoteService.idNoteComment
+import NoteService.notes
 import WallService.idPost
 import WallService.posts
+import kotlin.collections.arrayListOf
 
 fun main() {
 
@@ -139,7 +144,7 @@ object NoteService {
     }
 
     fun getById(noteId: Int): Note {
-       for ((index, noteIndex) in notes.withIndex()) {
+        for ((index, noteIndex) in notes.withIndex()) {
             if (noteIndex.id == noteId) {
                 return noteIndex
             }
@@ -203,6 +208,127 @@ object NoteService {
         for ((index, commentIndex) in comments.withIndex()) {
             if (commentIndex.id == commentId) {
                 commentIndex.marker = false
+                return true
+            }
+        }
+        return false
+    }
+}
+
+data class Chat(
+    val id: Int,
+    var name: String = "",
+    val idUser: Int = 0
+)
+
+class Message(
+    val id: Int,
+    val idChat: Int,
+    var text: String,
+    var marker: Boolean = false
+)
+
+object ChatService {
+
+    private var chats = arrayListOf<Chat>()
+    private var messages = arrayListOf<Message>()
+
+    private var idChats: Int = 0
+    private var idMessages: Int = 0
+
+    fun clear() {
+        chats.clear()
+        messages.clear()
+        idChats = 0
+        idMessages = 0
+    }
+
+    fun addChats(idChat: Int): Int {
+
+        for(chat in chats) {
+            if (chat.id == idChat) {
+                return chat.id
+            }
+        }
+        val chat = Chat(++idChats)
+        chats.add(chat)
+        return chat.id
+    }
+
+    fun addMessage(idChat: Int, text: String): Int {
+        val idParent = addChats(idChat)
+        val message = Message(++idMessages,idParent, text)
+        messages.add(message)
+        return message.id
+    }
+
+    fun getChats(): ArrayList<Chat> {
+        return chats
+    }
+
+    fun getMessages(idChat: Int): List<Message> {
+
+        val chatList = messages.filter(fun(message: Message) = message.idChat == idChat)
+
+        for (message in chatList) {
+            editMessage(message.id, message.text, true)
+        }
+        return chatList
+    }
+
+    fun editMessage(id: Int, text: String, marker: Boolean): Boolean {
+        for (message in messages) {
+            if (message.id == id) {
+                message.text = text
+                message.marker = marker
+                return true
+            }
+        }
+        return false
+    }
+
+    fun getUnreadChatsCount(): Int {
+        var count = 0
+        for (chat in chats) {
+            val chatList =
+                messages.filter(fun(message: Message) = (message.idChat == chat.id) and (message.marker == false))
+            if (chatList.size > 0) {
+                count++
+            }
+        }
+        return count
+    }
+
+    fun getLatestMessages(): ArrayList<String> {
+        var latest = ArrayList<String>()
+        val chatList = messages.filter(fun(message: Message) = message.marker == false)
+
+        for (message in chatList) {
+            latest.add(message.text)
+        }
+        return latest
+    }
+
+    fun deleteMessage(id: Int): Boolean {
+        for (message in messages) {
+            if (message.id == id) {
+                messages.remove(message)
+                return true
+            }
+        }
+        return false
+    }
+
+    fun deleteChat(idChat: Int): Boolean {
+        for (chat in chats) {
+            if (chat.id == idChat) {
+
+                val delMessages: List<Message> = messages.filter { message -> message.idChat == idChat }
+
+                for (delMessage in delMessages) {
+                    deleteMessage(delMessage.id)
+                }
+                chats.remove(chat)
                 return true
             }
         }
