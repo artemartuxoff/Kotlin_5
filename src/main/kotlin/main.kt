@@ -8,6 +8,9 @@ import kotlin.collections.arrayListOf
 
 fun main() {
 
+    ChatService.addMessage(1, "text")
+    ChatService.addMessage(1, "text")
+    val result = ChatService.getLatestMessages().size
 
 }
 
@@ -245,9 +248,9 @@ object ChatService {
 
     fun addChats(idChat: Int): Int {
 
-        for(chat in chats) {
+       for(chat in chats) {
             if (chat.id == idChat) {
-                return chat.id
+               return chat.id
             }
         }
         val chat = Chat(++idChats)
@@ -288,24 +291,33 @@ object ChatService {
     }
 
     fun getUnreadChatsCount(): Int {
-        var count = 0
-        for (chat in chats) {
-            val chatList =
-                messages.filter(fun(message: Message) = (message.idChat == chat.id) and (message.marker == false))
-            if (chatList.size > 0) {
-                count++
-            }
-        }
+
+        var count = messages.filter { it.marker == false }
+        .groupBy { it.idChat }
+        .size
+
+        //for (chat in chats) {
+        //    val chatList =
+        //        messages.filter(fun(message: Message) = (message.idChat == chat.id) and (message.marker == false))
+        //    if (chatList.size > 0) {
+        //        count++
+        //    }
+        //}
         return count
     }
 
     fun getLatestMessages(): ArrayList<String> {
-        var latest = ArrayList<String>()
-        val chatList = messages.filter(fun(message: Message) = message.marker == false)
 
-        for (message in chatList) {
-            latest.add(message.text)
-        }
+        var latest = messages.filter { it.marker }
+            .map { it.text }
+            .toCollection(arrayListOf())
+
+        //var latest = ArrayList<String>()
+        //val chatList = messages.filter(fun(message: Message) = message.marker == false)
+        //
+        //for (message in chatList) {
+        //    latest.add(message.text)
+        //}
         return latest
     }
 
