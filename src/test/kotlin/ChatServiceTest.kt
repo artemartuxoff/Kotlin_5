@@ -29,6 +29,7 @@ class ChatServiceTest {
         val result = ChatService.getMessages(1).size
         assertEquals(2, result)
     }
+
     @Test
     fun getUnreadChatsCount(){
         ChatService.addMessage(1, "text")
@@ -51,7 +52,18 @@ class ChatServiceTest {
     fun getLatestMessages(){
         ChatService.addMessage(1, "text")
         ChatService.addMessage(1, "text")
+        ChatService.addMessage(2, "text")
         val result = ChatService.getLatestMessages().size
         assertEquals(2, result)
+ }
+
+
+    @Test (expected = ChatNotFoundException::class)
+    fun deleteChatThrow() {
+
+        ChatService.addMessage(1, "text")
+        ChatService.deleteChat(2)
+
     }
+
 }

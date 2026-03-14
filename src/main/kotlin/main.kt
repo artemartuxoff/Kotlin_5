@@ -5,12 +5,15 @@ import NoteService.notes
 import WallService.idPost
 import WallService.posts
 import kotlin.collections.arrayListOf
+import kotlin.collections.mutableListOf
 
 fun main() {
 
     ChatService.addMessage(1, "text")
     ChatService.addMessage(1, "text")
-    val result = ChatService.getLatestMessages().size
+    val result = ChatService.getMessages(1)
+
+
 
 }
 
@@ -231,11 +234,13 @@ class Message(
     var marker: Boolean = false
 )
 
+class ChatNotFoundException() : RuntimeException()
+
+
 object ChatService {
 
-    private var chats = arrayListOf<Chat>()
-    private var messages = arrayListOf<Message>()
-
+    private var chats = mutableListOf<Chat>()
+    private var messages = mutableListOf<Message>()
     private var idChats: Int = 0
     private var idMessages: Int = 0
 
@@ -248,103 +253,59 @@ object ChatService {
 
     fun addChats(idChat: Int): Int {
 
-       for(chat in chats) {
-            if (chat.id == idChat) {
-               return chat.id
+        chats.filter { it.id == idChat }
+            .ifEmpty {
+                chats.add(Chat(++idChats))
+                return idChats
             }
-        }
-        val chat = Chat(++idChats)
-        chats.add(chat)
-        return chat.id
+
+        return idChat
     }
 
     fun addMessage(idChat: Int, text: String): Int {
-        val idParent = addChats(idChat)
-        val message = Message(++idMessages,idParent, text)
-        messages.add(message)
-        return message.id
+        messages.add(Message(++idMessages, addChats(idChat), text))
+            .let { return messages.last().id  }
     }
 
-    fun getChats(): ArrayList<Chat> {
+    fun getChats(): List<Chat> {
         return chats
     }
 
-    fun getMessages(idChat: Int): List<Message> {
+    fun getMessages(idChat: Int) = messages.filter { it.idChat == idChat }
+            .onEach { editMessage(it, it.text, true) }
 
-        val chatList = messages.filter(fun(message: Message) = message.idChat == idChat)
-
-        for (message in chatList) {
-            editMessage(message.id, message.text, true)
-        }
-        return chatList
+    fun editMessage(message: Message, text: String, marker: Boolean): Boolean {
+        message.text = text
+        message.marker = marker
+        return true
     }
 
-    fun editMessage(id: Int, text: String, marker: Boolean): Boolean {
-        for (message in messages) {
-            if (message.id == id) {
-                message.text = text
-                message.marker = marker
-                return true
-            }
-        }
-        return false
-    }
-
-    fun getUnreadChatsCount(): Int {
-
-        var count = messages.filter { it.marker == false }
-        .groupBy { it.idChat }
-        .size
-
-        //for (chat in chats) {
-        //    val chatList =
-        //        messages.filter(fun(message: Message) = (message.idChat == chat.id) and (message.marker == false))
-        //    if (chatList.size > 0) {
-        //        count++
-        //    }
-        //}
-        return count
-    }
+    fun getUnreadChatsCount() = messages.filter { it.marker == false }
+        .groupBy { it.idChat }.size
 
     fun getLatestMessages(): ArrayList<String> {
 
-        var latest = messages.filter { it.marker }
-            .map { it.text }
-            .toCollection(arrayListOf())
+        var lastMessage = ArrayList<String>()
 
-        //var latest = ArrayList<String>()
-        //val chatList = messages.filter(fun(message: Message) = message.marker == false)
-        //
-        //for (message in chatList) {
-        //    latest.add(message.text)
-        //}
-        return latest
-    }
-
-    fun deleteMessage(id: Int): Boolean {
-        for (message in messages) {
-            if (message.id == id) {
-                messages.remove(message)
-                return true
-            }
+        chats.forEach { chat ->
+            lastMessage.add(
+                messages.filter { chat.id == it.idChat }
+                    .last().text)
         }
-        return false
+
+        return lastMessage
+
     }
+
+    fun deleteMessage(id: Int) = messages.removeIf { it.id == id }
 
     fun deleteChat(idChat: Int): Boolean {
-        for (chat in chats) {
-            if (chat.id == idChat) {
 
-                val delMessages: List<Message> = messages.filter { message -> message.idChat == idChat }
-
-                for (delMessage in delMessages) {
-                    deleteMessage(delMessage.id)
-                }
-                chats.remove(chat)
-                return true
-            }
+        chats.filter { it.id == idChat }.ifEmpty { throw ChatNotFoundException() }.let {
+            messages.removeIf { it.idChat == idChat }
+            chats.removeIf { it.id == idChat }
+            return true
         }
-        return false
     }
 }
 
